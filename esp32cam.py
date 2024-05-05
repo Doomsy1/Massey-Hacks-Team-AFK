@@ -2,13 +2,23 @@ import cv2
 import numpy as np
 import urllib.request
 import http.client
+import pygame
 
-#check ip addresses
-url2 = 'http://192.168.1.112/cam-lo.jpg'
+pygame.init()
+pygame.font.init()
+# pygame.joystick.init()
+# joyNum = pygame.joystick.get_count()
+# print(joyNum)
+screen = pygame.display.set_mode((1000, 800))
+font30 = pygame.font.SysFont('Callimathy Demo', 30)
+
 url1 = 'http://192.168.1.128/cam-lo.jpg'
+url2 = 'http://192.168.1.112/cam-lo.jpg'
+# url3 = 'http://192.168.1.112/cam-lo.jpg'
 
 cap1 = cv2.VideoCapture(url1)
 cap2 = cv2.VideoCapture(url2)
+# cap3 = cv2.VideoCapture(url3)
 whT=320
 confThreshold = 0.5
 nmsThreshold = 0.3
@@ -41,7 +51,7 @@ def findObject(outputs,img):
                 bbox.append([x,y,w,h])
                 classIds.append(classId)
                 confs.append(float(confidence))
-    #print(len(bbox))q
+
     indices = cv2.dnn.NMSBoxes(bbox,confs,confThreshold,nmsThreshold)
 
     if(len(classIds) < 30):
@@ -54,6 +64,10 @@ def findObject(outputs,img):
  
        
 
+def download_image(url, save_as):
+    response = requests.get(url)
+    with open(save_as, 'wb') as file:
+        file.write(response.content)
 
 
 import threading
@@ -64,7 +78,6 @@ def fetch_frame(url, cap, net, window_name):
             img_resp = urllib.request.urlopen(url)
             imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
             im = cv2.imdecode(imgnp, -1)
-            # success, img = cap.read()
             blob = cv2.dnn.blobFromImage(im, 1/255, (whT, whT), [0,0,0], 1, crop=False)
             net.setInput(blob)
             layer_names = net.getLayerNames()
@@ -72,6 +85,10 @@ def fetch_frame(url, cap, net, window_name):
             outputs = net.forward(output_names)
             findObject(outputs, im)
             cv2.imshow(window_name, im)
+            cv2.imwrite('image.png', im)
+            screen.blit(pygame.image.load('image.png'), (0,0))
+            pygame.display.flip()
+
             cv2.waitKey(1)
             key = cv2.waitKey(1)
             if key == ord('q'):
@@ -84,11 +101,16 @@ def fetch_frame(url, cap, net, window_name):
 
 thread1 = threading.Thread(target=fetch_frame, args=(url1, cap1, net, 'Image 1'))
 thread2 = threading.Thread(target=fetch_frame, args=(url2, cap2, net, 'Image 2'))
+# thread3 = threading.Thread(target=fetch_frame, args=(url3, cap3, net, 'Image 3'))
 
 thread1.start()
 thread2.start()
+# thread3.start()
 
 thread1.join()
 thread2.join()
+# thread3.join()
 
 cv2.destroyAllWindows()
+
+pygame.quit()
