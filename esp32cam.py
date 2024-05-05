@@ -2,23 +2,26 @@ import cv2
 import numpy as np
 import urllib.request
 import http.client
-import pygame
+import threading
 
-pygame.init()
-pygame.font.init()
-# pygame.joystick.init()
-# joyNum = pygame.joystick.get_count()
-# print(joyNum)
-screen = pygame.display.set_mode((1000, 800))
-font30 = pygame.font.SysFont('Callimathy Demo', 30)
+# import pygame
+# import requests
+
+# pygame.init()
+# pygame.font.init()
+# # pygame.joystick.init()
+# # joyNum = pygame.joystick.get_count()
+# # print(joyNum)
+# screen = pygame.display.set_mode((1000, 800))
+# font30 = pygame.font.SysFont('Callimathy Demo', 30)
 
 url1 = 'http://192.168.1.128/cam-lo.jpg'
 url2 = 'http://192.168.1.112/cam-lo.jpg'
-# url3 = 'http://192.168.1.112/cam-lo.jpg'
+url3 = 'http://192.168.1.136/cam-lo.jpg'
 
 cap1 = cv2.VideoCapture(url1)
 cap2 = cv2.VideoCapture(url2)
-# cap3 = cv2.VideoCapture(url3)
+cap3 = cv2.VideoCapture(url3)
 whT=320
 confThreshold = 0.5
 nmsThreshold = 0.3
@@ -46,12 +49,14 @@ def findObject(outputs,img):
             if confidence > confThreshold:
                 if wT == 0 or hT == 0 or len(classIds) > 30:
                     continue
-                w,h = int(det[2]*wT), int(det[3]*hT)
-                x,y = int((det[0]*wT)-w/2), int((det[1]*hT)-h/2)
-                bbox.append([x,y,w,h])
-                classIds.append(classId)
-                confs.append(float(confidence))
+                if classId in [17, 19, 20, 22]:
+                    w,h = int(det[2]*wT), int(det[3]*hT)
+                    x,y = int((det[0]*wT)-w/2), int((det[1]*hT)-h/2)
+                    bbox.append([x,y,w,h])
+                    classIds.append(classId)
+                    confs.append(float(confidence))
 
+    print(classIds)
     indices = cv2.dnn.NMSBoxes(bbox,confs,confThreshold,nmsThreshold)
 
     if(len(classIds) < 30):
@@ -64,13 +69,10 @@ def findObject(outputs,img):
  
        
 
-def download_image(url, save_as):
-    response = requests.get(url)
-    with open(save_as, 'wb') as file:
-        file.write(response.content)
-
-
-import threading
+# def download_image(url, save_as):
+#     response = requests.get(url)
+#     with open(save_as, 'wb') as file:
+#         file.write(response.content)
 
 def fetch_frame(url, cap, net, window_name):
     while True:
@@ -85,9 +87,9 @@ def fetch_frame(url, cap, net, window_name):
             outputs = net.forward(output_names)
             findObject(outputs, im)
             cv2.imshow(window_name, im)
-            cv2.imwrite('image.png', im)
-            screen.blit(pygame.image.load('image.png'), (0,0))
-            pygame.display.flip()
+            # cv2.imwrite('image.png', im)
+            # screen.blit(pygame.image.load('image.png'), (0,0))
+            # pygame.display.flip()
 
             cv2.waitKey(1)
             key = cv2.waitKey(1)
@@ -101,16 +103,16 @@ def fetch_frame(url, cap, net, window_name):
 
 thread1 = threading.Thread(target=fetch_frame, args=(url1, cap1, net, 'Image 1'))
 thread2 = threading.Thread(target=fetch_frame, args=(url2, cap2, net, 'Image 2'))
-# thread3 = threading.Thread(target=fetch_frame, args=(url3, cap3, net, 'Image 3'))
+thread3 = threading.Thread(target=fetch_frame, args=(url3, cap3, net, 'Image 3'))
 
 thread1.start()
 thread2.start()
-# thread3.start()
+thread3.start()
 
 thread1.join()
 thread2.join()
-# thread3.join()
+thread3.join()
 
 cv2.destroyAllWindows()
 
-pygame.quit()
+# pygame.quit()
