@@ -1,28 +1,19 @@
-from io import BytesIO
 import pygame, sys, bluetooth, time
-import cv2
-import numpy as np
-import urllib.request
-import http.client
 
-class PygameGame():
+class RobotController():
     def __init__(self):
         pygame.init()
         pygame.font.init()
         pygame.joystick.init()
 
-        self.joyNum = pygame.joystick.get_count()
         self.font30 = pygame.font.SysFont('Callimathy Demo', 50)
 
         self.width = 1280
         self.height = 960
-        self.bgColor = (0, 0, 0)
         self.window = pygame.display.set_mode((self.width, self.height))
         self.background_image = pygame.image.load("assets/images/MasseyHacks UI.png")
         self.redlefttrigger = pygame.image.load("assets/images/redlefttrigger.png")
         self.redrighttrigger = pygame.image.load("assets/images/redrighttrigger.png")
-        self.camnum = 1
-        self.colors = ["red", "blue", "green"]
         self.leftstickrect = pygame.Rect(64, 782, 30, 30)
         self.rightstickrect = pygame.Rect(172, 824, 30, 30)
         self.dpadvert = pygame.Rect(107, 821, 15, 45)
@@ -34,8 +25,9 @@ class PygameGame():
 
         self.setupBluetooth()
 
-        self.joystick = pygame.joystick.Joystick(0)
-        self.joystick.init()
+        # Joystick setup
+        # self.joystick = pygame.joystick.Joystick(0)
+        # self.joystick.init()
 
         self.input_threshold = 0.1
 
@@ -50,6 +42,8 @@ class PygameGame():
         pygame.init()
         while True:
             click = False
+            self.mx, self.my = pygame.mouse.get_pos()
+            self.keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -60,40 +54,39 @@ class PygameGame():
             self.window.fill("black")
             self.window.blit(self.background_image, (0, 0))
 
-            self.getControllerInput()
+            # self.getControllerInput()
             self.checkController()
 
             pygame.display.flip()
 
-    def checkController(self):
-        mx, my = pygame.mouse.get_pos()
 
-        if (self.leftstickrect.collidepoint(mx, my)):
+
+    def checkController(self):
+        if (self.leftstickrect.collidepoint(self.mx, self.my)):
             pygame.draw.circle(self.window, ("red"), (self.leftstickrect.x + 15, self.leftstickrect.y + 15), 15)
             self.drawOverlayRectangles()
-            self.write_centered_text(self.window, "Move Left Stick up and down to control left wheels", pygame.Rect(mx, my - 50, 300, 50), "white")
-        elif (self.rightstickrect.collidepoint(mx, my)):
+            self.write_centered_text(self.window, "Move Left Stick up and down to control left wheels", pygame.Rect(self.mx, self.my - 50, 300, 50), "white")
+        elif (self.rightstickrect.collidepoint(self.mx, self.my)):
             pygame.draw.circle(self.window, ("red"), (self.rightstickrect.x + 15, self.rightstickrect.y + 15), 15)
             self.drawOverlayRectangles()
-            self.write_centered_text(self.window, "Move Right Stick up and down to control right wheels", pygame.Rect(mx, my - 50, 300, 50), "white")
-        elif (self.dpadvert.collidepoint(mx, my) or self.dpadhor.collidepoint(mx, my)):
+            self.write_centered_text(self.window, "Move Right Stick up and down to control right wheels", pygame.Rect(self.mx, self.my - 50, 300, 50), "white")
+        elif (self.dpadvert.collidepoint(self.mx, self.my) or self.dpadhor.collidepoint(self.mx, self.my)):
             pygame.draw.rect(self.window, ("red"), self.dpadvert)
             pygame.draw.rect(self.window, ("red"), self.dpadhor)
             self.drawOverlayRectangles()
-            self.write_centered_text(self.window, "Press D-Pad left and right to rotate arm\nPress D-Pad up and down to move arm up and down", pygame.Rect(mx, my - 50, 300, 50), "white")
-        elif (self.lefttriggerrect.collidepoint(mx, my)):
+            self.write_centered_text(self.window, "Press D-Pad left and right to rotate arm\nPress D-Pad up and down to move arm up and down", pygame.Rect(self.mx, self.my - 50, 300, 50), "white")
+        elif (self.lefttriggerrect.collidepoint(self.mx, self.my)):
             self.window.blit(self.redlefttrigger, (self.lefttriggerrect.x, self.lefttriggerrect.y))
             self.drawOverlayRectangles()
-            self.write_centered_text(self.window, "Press Left Trigger to open the gripper", pygame.Rect(mx, my - 50, 300, 50), "white")
-        elif (self.righttriggerrect.collidepoint(mx, my)):
+            self.write_centered_text(self.window, "Press Left Trigger to open the gripper", pygame.Rect(self.mx, self.my - 50, 300, 50), "white")
+        elif (self.righttriggerrect.collidepoint(self.mx, self.my)):
             self.window.blit(self.redrighttrigger, (self.righttriggerrect.x, self.righttriggerrect.y))
             self.drawOverlayRectangles()
-            self.write_centered_text(self.window, "Press Right Trigger to close the gripper", pygame.Rect(mx, my - 50, 300, 50), "white")
+            self.write_centered_text(self.window, "Press Right Trigger to close the gripper", pygame.Rect(self.mx, self.my - 50, 300, 50), "white")
 
     def drawOverlayRectangles(self):
-        mx, my = pygame.mouse.get_pos()
-        pygame.draw.rect(self.window, "white", (mx- 5, my - 55, 310, 60))
-        pygame.draw.rect(self.window, "black", (mx, my - 50, 300, 50))
+        pygame.draw.rect(self.window, "white", (self.mx- 5, self.my - 55, 310, 60))
+        pygame.draw.rect(self.window, "black", (self.mx, self.my - 50, 300, 50))
         
 
     def write_centered_text(self, screen, text, rectangle, colour, cache={}):
@@ -202,6 +195,34 @@ class PygameGame():
         time.sleep(0.05) 
         self.bt_socket.send(data_str.encode())
 
+    def getKeyboardInput(self):
+        if self.keys[pygame.K_w]:
+            left_speed = 255
+            right_speed = 255
+        elif self.keys[pygame.K_s]:
+            left_speed = -255
+            right_speed = -255
+        elif self.keys[pygame.K_a]:
+            left_speed = -255
+            right_speed = 255
+        elif self.keys[pygame.K_d]:
+            left_speed = 255
+            right_speed = -255
+        else:
+            left_speed = 0
+            right_speed = 0
+
+        self.displayControllerInfo(left_speed, right_speed)
+
+        # Create a string of the data to send to the ESP32
+        # Left motor speed, right motor speed, turret angle, arm angle, gripper state, "\n"
+        data_str = f"{left_speed},{right_speed},{self.turret_angle},{self.arm_angle},{self.gripperPos},\n"
+        
+        # Send the data to the ESP32 over Bluetooth
+        time.sleep(0.05)
+        self.bt_socket.send(data_str.encode())
+        
+
     def displayControllerInfo(self, left_speed, right_speed):
         pygame.draw.rect(self.window, "black", (10, 300, 370, 330))
         text = self.font30.render(f"Left Speed: {left_speed:.2f}", True, (255, 255, 255))
@@ -276,5 +297,5 @@ class PygameGame():
         return self.gripperPos
     
 if __name__ == '__main__':
-    game = PygameGame()
+    game = RobotController()
     game.run()
