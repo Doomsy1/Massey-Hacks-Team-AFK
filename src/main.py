@@ -22,8 +22,10 @@ class RobotController():
         self.righttriggerrect = pygame.Rect(200, 691, 33, 45)
         pygame.display.set_caption("2AK-Bot Software")
         pygame.display.set_icon(pygame.image.load("assets/images/2AK-BOT Logo.png"))
+        self.clock = pygame.time.Clock()
 
-        self.setupBluetooth()
+        # TODO: Uncomment this line to use Bluetooth
+        # self.setupBluetooth()
 
         # Joystick setup
         # self.joystick = pygame.joystick.Joystick(0)
@@ -55,8 +57,11 @@ class RobotController():
             self.window.blit(self.background_image, (0, 0))
 
             # self.getControllerInput()
+            self.getKeyboardInput()
             self.checkController()
-
+            
+            self.clock.tick(60)
+            pygame.display.set_caption(f"2AK-Bot Software | FPS: {int(self.clock.get_fps())}")
             pygame.display.flip()
 
 
@@ -212,6 +217,42 @@ class RobotController():
             left_speed = 0
             right_speed = 0
 
+        # Calculate the angle of the turret
+        if self.keys[pygame.K_LEFT]:
+            self.turret_angle -= self.turret_velocity
+        elif self.keys[pygame.K_RIGHT]:
+            self.turret_angle += self.turret_velocity
+
+        # Limit the turret angle to 0-180 degrees
+        if self.turret_angle < 0:
+            self.turret_angle = 0
+        elif self.turret_angle > 180:
+            self.turret_angle = 180
+
+        # Calculate the angle of the arm
+        if self.keys[pygame.K_UP]:
+            self.arm_angle += self.arm_velocity
+        elif self.keys[pygame.K_DOWN]:
+            self.arm_angle -= self.arm_velocity
+
+        # Limit the arm angle to 0-90 degrees
+        if self.arm_angle < 0:
+            self.arm_angle = 0
+        elif self.arm_angle > 90:
+            self.arm_angle = 90
+
+        # Calculate the position of the gripper
+        if self.keys[pygame.K_q]:
+            self.gripperPos -= self.gripper_velocity
+        elif self.keys[pygame.K_e]:
+            self.gripperPos += self.gripper_velocity
+
+        # Limit the gripper position to 5-95 degrees
+        if self.gripperPos < 5:
+            self.gripperPos = 5
+        elif self.gripperPos > 95:
+            self.gripperPos = 95
+
         self.displayControllerInfo(left_speed, right_speed)
 
         # Create a string of the data to send to the ESP32
@@ -220,7 +261,8 @@ class RobotController():
         
         # Send the data to the ESP32 over Bluetooth
         time.sleep(0.05)
-        self.bt_socket.send(data_str.encode())
+        # TODO: Uncomment this line to use Bluetooth
+        # self.bt_socket.send(data_str.encode())
         
 
     def displayControllerInfo(self, left_speed, right_speed):
