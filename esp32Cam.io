@@ -1,9 +1,7 @@
 #include <WebServer.h>
 #include <WiFi.h>
 #include <esp32cam.h>
- 
-const char* WIFI_SSID = "Linksys01675";
-const char* WIFI_PASS = "bvjfa814h0";
+#include "secrets.h"  // create from secrets.h.example with your WiFi SSID/password
  
 WebServer server(80);
  

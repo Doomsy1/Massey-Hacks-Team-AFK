@@ -3,21 +3,14 @@ import numpy as np
 import urllib.request
 import http.client
 import threading
+import os
 
-# import pygame
-# import requests
-
-# pygame.init()
-# pygame.font.init()
-# # pygame.joystick.init()
-# # joyNum = pygame.joystick.get_count()
-# # print(joyNum)
-# screen = pygame.display.set_mode((1000, 800))
-# font30 = pygame.font.SysFont('Callimathy Demo', 30)
-
-url1 = 'http://192.168.1.128/cam-lo.jpg'
-url2 = 'http://192.168.1.112/cam-lo.jpg'
-url3 = 'http://192.168.1.136/cam-lo.jpg'
+# Camera URLs default to the original build's LAN addresses; override at runtime
+# with CAM1_URL / CAM2_URL / CAM3_URL environment variables, e.g.
+#   CAM1_URL=http://192.168.0.10/cam-lo.jpg python esp32cam.py
+url1 = os.environ.get('CAM1_URL', 'http://192.168.1.128/cam-lo.jpg')
+url2 = os.environ.get('CAM2_URL', 'http://192.168.1.112/cam-lo.jpg')
+url3 = os.environ.get('CAM3_URL', 'http://192.168.1.136/cam-lo.jpg')
 
 cap1 = cv2.VideoCapture(url1)
 cap2 = cv2.VideoCapture(url2)
