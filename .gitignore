@@ -1,2 +1,22 @@
-
+# YOLO weights (download separately, ~240 MB)
 yolov3.weights
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# ESP32 / Arduino secrets (keep credentials out of git)
+secrets.h
+
+# PlatformIO / Arduino build output
+.pio/
+build/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
