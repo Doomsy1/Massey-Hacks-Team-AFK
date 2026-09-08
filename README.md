@@ -1,3 +1,12 @@
+# 2AK-Bot
+
+A controller-operated rover with a gripper arm and ESP32 cameras, built for MasseyHacks X.
+
+![Exploded CAD view of the rover's drive base, body, rotating arm mount, and gripper](docs/images/rover-cad.jpg)
+
+The exploded CAD view shows how the drive base, printed body, and arm assembly fit together.
+Image from the team's [Devpost project](https://devpost.com/software/2ak-bot), which includes build details and team credits.
+
 <h2>Inspiration</h2>
 Seeing the power of AI, we wanted to create a robot that can harness the power of it and be self-autonomous. Seeing self-driving cars like the ones made by Elon inspired us to create a more small scale robot that can do things on it own. Although we did not get to automating movement, it was still the beginning inspiration for the project.
 
